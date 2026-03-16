@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "jsx": "preserve",
+    "paths": {
+      "#imports": ["./node_modules/nuxt/dist/app"]
+    }
+  },
+  "include": ["src"]
+}

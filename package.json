@@ -1,0 +1,62 @@
+{
+  "name": "tiktok-live-nuxt",
+  "version": "1.0.0",
+  "description": "Nuxt module for TikTok LIVE API — real-time chat, gifts, viewers, battles, and AI captions",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.mts",
+      "import": "./dist/module.mjs",
+      "require": "./dist/module.cjs"
+    }
+  },
+  "main": "./dist/module.cjs",
+  "types": "./dist/types.d.mts",
+  "files": [
+    "dist",
+    "banner.png",
+    "logo.svg"
+  ],
+  "keywords": [
+    "nuxt",
+    "nuxt-module",
+    "tiktok",
+    "tiktok-live",
+    "tiktok-api",
+    "websocket",
+    "live-streaming",
+    "real-time",
+    "chat",
+    "gifts",
+    "captions",
+    "speech-to-text"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tiktool/tiktok-live-nuxt"
+  },
+  "homepage": "https://tik.tools",
+  "bugs": {
+    "url": "https://github.com/tiktool/tiktok-live-nuxt/issues"
+  },
+  "scripts": {
+    "prepack": "nuxt-module-build build",
+    "dev": "nuxi dev playground",
+    "dev:build": "nuxi build playground",
+    "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxi prepare playground",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest watch"
+  },
+  "dependencies": {
+    "@nuxt/kit": "^3.16.0",
+    "tiktok-live-api": "^1.0.0"
+  },
+  "devDependencies": {
+    "@nuxt/module-builder": "^0.8.0",
+    "@nuxt/schema": "^3.16.0",
+    "nuxt": "^3.16.0",
+    "typescript": "^5.5.0"
+  }
+}
