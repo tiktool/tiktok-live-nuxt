@@ -170,13 +170,43 @@ tiktok.on('roomUserSeq', (data) => {
 
 | Event | Key Fields |
 |-------|-----------|
-| `chat` | `user.uniqueId`, `comment` |
-| `gift` | `user.uniqueId`, `giftName`, `diamondCount` |
-| `like` | `user.uniqueId`, `likeCount` |
+| `chat` | `user.uniqueId`, `comment`, `emotes` |
+| `gift` | `user.uniqueId`, `giftName`, `diamondCount`, `repeatCount`, `repeatEnd` |
+| `like` | `user.uniqueId`, `likeCount`, `totalLikes` |
 | `follow` | `user.uniqueId` |
+| `share` | `user.uniqueId` |
 | `member` | `user.uniqueId` (viewer joined) |
-| `roomUserSeq` | `viewerCount` |
-| `battle` | `type`, `teams`, `scores` |
+| `subscribe` | `user.uniqueId` |
+| `roomUserSeq` | `viewerCount`, `topViewers[]` |
+| `battle` | `battleId`, `status`, `teams[]` (PK on/off) |
+| `battleArmies` | `battleId`, `hosts[]` (per-host MVP contributors), `secsRemaining` |
+| `battleItemCard` | `effect` (gloves / mist / booster_x2 / booster_x3 / match_guide / thunder / extra_time), `multiplier`, `iconUrl`, `accentColor` |
+| `roomPin` | `user.uniqueId`, `comment` (starred message) |
+
+### PK Battles + Boosters
+
+`battleArmies.hosts[]` gives **per-host MVP breakdown** sorted by score:
+
+```vue
+<script setup>
+const tiktok = useTikTokLive('streamer_name')
+
+tiktok.on('battleArmies', (e) => {
+  console.log(`⏱ ${e.secsRemaining}s left`)
+  for (const host of e.hosts ?? []) {
+    const mvp = host.contributors[0]
+    console.log(`${host.hostUserId}: ${host.teamTotalScore} (MVP ${mvp?.nickname}: ${mvp?.score})`)
+  }
+})
+
+tiktok.on('battleItemCard', (e) => {
+  // x2/x3 boosters, gloves, mist, thunder, extra-time, match-guide
+  const tag = e.multiplier > 0 ? `x${e.multiplier} BOOSTER` : e.effect.toUpperCase()
+  console.log(`💥 ${e.senderNickname} → ${tag}`)
+  // e.iconUrl + e.accentColor for drop-in overlay
+})
+</script>
+```
 
 ---
 
