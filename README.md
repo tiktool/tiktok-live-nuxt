@@ -264,7 +264,6 @@ const topGifters = computed(() => {
 - 🌐 [tik.tools](https://tik.tools) — Dashboard & API keys
 - 📖 [Documentation](https://tik.tools/docs)
 - 🎙️ [AI Live Captions](https://tik.tools/captions)
-- 💬 [Discord](https://discord.gg/y8TwuFBAmD)
 
 ## License
 
