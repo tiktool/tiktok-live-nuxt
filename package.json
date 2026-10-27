@@ -1,7 +1,7 @@
 {
   "name": "tiktok-live-nuxt",
-  "version": "1.1.0",
-  "description": "Nuxt module for TikTok LIVE API — real-time chat, gifts, viewers, PK battles with MVP breakdown, x2/x3 boosters, and AI captions",
+  "version": "2.0.0",
+  "description": "Nuxt module for TikTok LIVE API - real-time chat, gifts, viewers, PK battles with MVP breakdown, and x2/x3 boosters",
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -45,7 +45,8 @@
     "url": "https://github.com/tiktool/tiktok-live-nuxt/issues"
   },
   "scripts": {
-    "prepack": "nuxt-module-build build",
+    "build": "nuxt-module-build build && node strip-comments.mjs dist",
+    "prepack": "npm run build",
     "dev": "nuxi dev playground",
     "dev:build": "nuxi build playground",
     "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxi prepare playground",
@@ -54,8 +55,7 @@
     "test:watch": "vitest watch"
   },
   "dependencies": {
-    "@nuxt/kit": "^3.16.0",
-    "tiktok-live-api": "^1.0.0"
+    "@nuxt/kit": "^3.16.0"
   },
   "devDependencies": {
     "@nuxt/module-builder": "^0.8.0",

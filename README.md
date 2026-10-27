@@ -11,19 +11,19 @@
 </p>
 
 <p align="center">
-  Nuxt module for <a href="https://tik.tools">TikTok LIVE API</a> — real-time chat, gifts, viewers, battles & AI captions from any TikTok LIVE stream.
+  Nuxt module for <a href="https://tik.tools">TikTok LIVE API</a> - real-time chat, gifts, viewers, battles and more from any TikTok LIVE stream.
 </p>
 
 ---
 
 ```vue
 <script setup>
-const { messages, viewers, gifts, connected } = useTikTokLive('gbnews')
+const { messages, viewers, gifts, connected } = useTikTokLive('creator_username')
 </script>
 
 <template>
   <div>
-    <p>👀 {{ viewers }} viewers</p>
+    <p>{{ viewers }} viewers</p>
     <div v-for="msg in messages" :key="msg.data?.msgId">
       <b>{{ msg.data?.user?.uniqueId }}:</b> {{ msg.data?.comment }}
     </div>
@@ -31,7 +31,7 @@ const { messages, viewers, gifts, connected } = useTikTokLive('gbnews')
 </template>
 ```
 
-That's it. Auto-imported, reactive, auto-connects on mount. ☝️
+That's it. Auto-imported, reactive, auto-connects on mount.
 
 ---
 
@@ -61,12 +61,23 @@ Add to `nuxt.config.ts`:
 export default defineNuxtConfig({
   modules: ['tiktok-live-nuxt'],
   tiktool: {
-    apiKey: 'YOUR_API_KEY' // Get free key → https://tik.tools
+    apiKey: 'YOUR_API_KEY', // Get a key at https://tik.tools
+    creators: ['creator_username'] // creators this site may connect to
   }
 })
 ```
 
-Or via environment variable (recommended for production):
+| Option | Default | Description |
+|--------|---------|-------------|
+| `apiKey` | `TIKTOOL_API_KEY` | Your API key. Server-side only, never sent to the browser. |
+| `creators` | `[]` | Creators the token route will issue tokens for. Any other creator gets 403. |
+| `allowAnyCreator` | `false` | Skip the `creators` check. Only enable on a private or authenticated site. |
+| `tokensPerMinute` | `10` | Tokens each visitor IP may request per minute. |
+| `trustProxy` | `false` | Read the visitor IP from proxy headers. Behind a proxy or CDN set `trustProxy: true`, otherwise all visitors share one limit. |
+
+Enable `trustProxy` only when your proxy overwrites these headers (Cloudflare does; for plain nginx set `X-Forwarded-For` to `$remote_addr`), otherwise clients can spoof them.
+
+Or via environment variable (recommended for production). The key stays on your server: the module adds a `/api/_tiktool/token` route that hands the browser a short-lived token scoped to the creator it connects to.
 
 ```env
 TIKTOOL_API_KEY=your_api_key
@@ -80,7 +91,15 @@ const { messages, viewers, gifts, connected, error } = useTikTokLive('username')
 </script>
 ```
 
-No imports needed — `useTikTokLive` is auto-imported by the module.
+No imports needed - `useTikTokLive` is auto-imported by the module.
+
+---
+
+## Upgrading from 1.x
+
+- The API key is no longer exposed to the browser. The module adds a server route (`/api/_tiktool/token`) that issues short-lived tokens, so your app needs a Nuxt server runtime; fully static `nuxt generate` builds are not supported.
+- The composable's `apiKey` option was removed. Set the key in `nuxt.config.ts` or `TIKTOOL_API_KEY`.
+- List the creators you connect to under `tiktool.creators`.
 
 ---
 
@@ -97,12 +116,12 @@ This composable uses **WebSocket** which only runs in the browser. It's designed
 ```vue
 <!-- Option 1: Works out of the box (SSR-safe) -->
 <script setup>
-const { messages, connected } = useTikTokLive('gbnews')
+const { messages, connected } = useTikTokLive('creator_username')
 </script>
 
 <!-- Option 2: Client-only wrapper (avoids empty state flash) -->
 <ClientOnly>
-  <TikTokChat username="gbnews" />
+  <TikTokChat username="creator_username" />
 </ClientOnly>
 ```
 
@@ -114,8 +133,7 @@ const { messages, connected } = useTikTokLive('gbnews')
 
 | Param | Type | Default | Description |
 |-------|------|---------|-------------|
-| `uniqueId` | `string` | — | TikTok username (with or without `@`) |
-| `options.apiKey` | `string` | from config | Override the module-level API key |
+| `uniqueId` | `string` | - | TikTok username (with or without `@`) |
 | `options.autoConnect` | `boolean` | `true` | Connect on mount |
 
 ### Reactive Returns
@@ -144,7 +162,7 @@ const { messages, connected } = useTikTokLive('gbnews')
 
 ```vue
 <script setup>
-const tiktok = useTikTokLive('gbnews')
+const tiktok = useTikTokLive('creator_username')
 
 tiktok.on('chat', (data) => {
   // data.user.uniqueId, data.comment
@@ -192,7 +210,7 @@ tiktok.on('roomUserSeq', (data) => {
 const tiktok = useTikTokLive('streamer_name')
 
 tiktok.on('battleArmies', (e) => {
-  console.log(`⏱ ${e.secsRemaining}s left`)
+  console.log(`${e.secsRemaining}s left`)
   for (const host of e.hosts ?? []) {
     const mvp = host.contributors[0]
     console.log(`${host.hostUserId}: ${host.teamTotalScore} (MVP ${mvp?.nickname}: ${mvp?.score})`)
@@ -202,7 +220,7 @@ tiktok.on('battleArmies', (e) => {
 tiktok.on('battleItemCard', (e) => {
   // x2/x3 boosters, gloves, mist, thunder, extra-time, match-guide
   const tag = e.multiplier > 0 ? `x${e.multiplier} BOOSTER` : e.effect.toUpperCase()
-  console.log(`💥 ${e.senderNickname} → ${tag}`)
+  console.log(`${e.senderNickname} -> ${tag}`)
   // e.iconUrl + e.accentColor for drop-in overlay
 })
 </script>
@@ -214,7 +232,7 @@ tiktok.on('battleItemCard', (e) => {
 
 ```vue
 <script setup>
-const username = ref('gbnews')
+const username = ref('creator_username')
 const tiktok = useTikTokLive(username.value)
 
 const topGifters = computed(() => {
@@ -234,16 +252,16 @@ const topGifters = computed(() => {
   <div v-else-if="!tiktok.connected.value">Connecting to @{{ username }}...</div>
 
   <div v-else>
-    <p>✅ Connected — 👀 {{ tiktok.viewers.value }} viewers — {{ tiktok.eventCount.value }} events</p>
+    <p>Connected - {{ tiktok.viewers.value }} viewers - {{ tiktok.eventCount.value }} events</p>
 
-    <h3>💬 Chat</h3>
+    <h3>Chat</h3>
     <div v-for="msg in tiktok.messages.value" :key="msg.data?.msgId">
       <b>{{ msg.data?.user?.uniqueId }}:</b> {{ msg.data?.comment }}
     </div>
 
-    <h3>🏆 Top Gifters</h3>
+    <h3>Top Gifters</h3>
     <div v-for="([name, diamonds], i) in topGifters" :key="name">
-      {{ i + 1 }}. @{{ name }} — {{ diamonds }} 💎
+      {{ i + 1 }}. @{{ name }} - {{ diamonds }} diamonds
     </div>
   </div>
 </template>
@@ -261,10 +279,9 @@ const topGifters = computed(() => {
 
 ## Links
 
-- 🌐 [tik.tools](https://tik.tools) — Dashboard & API keys
-- 📖 [Documentation](https://tik.tools/docs)
-- 🎙️ [AI Live Captions](https://tik.tools/captions)
+- [tik.tools](https://tik.tools) - Dashboard & API keys
+- [Documentation](https://tik.tools/docs)
 
 ## License
 
-MIT — [tik.tools](https://tik.tools)
+MIT - [tik.tools](https://tik.tools)

@@ -1,5 +1,4 @@
 import { ref, onMounted, onUnmounted, type Ref } from 'vue'
-import { useRuntimeConfig } from '#imports'
 
 interface TikTokEvent {
   event: string
@@ -7,8 +6,6 @@ interface TikTokEvent {
 }
 
 interface UseTikTokLiveOptions {
-  /** Override the API key from module config */
-  apiKey?: string
   /** Auto-connect on mount (default: true) */
   autoConnect?: boolean
   /** Events to listen for (default: all) */
@@ -44,12 +41,12 @@ interface UseTikTokLiveReturn {
  * @example
  * ```vue
  * <script setup>
- * const { messages, viewers, gifts, connected } = useTikTokLive('gbnews')
+ * const { messages, viewers, gifts, connected } = useTikTokLive('creator_username')
  * </script>
  *
  * <template>
  *   <div v-if="connected">
- *     <p>👀 {{ viewers }} viewers</p>
+ *     <p>{{ viewers }} viewers</p>
  *     <div v-for="msg in messages" :key="msg.data?.msgId">
  *       {{ msg.data?.user?.uniqueId }}: {{ msg.data?.comment }}
  *     </div>
@@ -61,9 +58,6 @@ export function useTikTokLive(
   uniqueId: string,
   options: UseTikTokLiveOptions = {},
 ): UseTikTokLiveReturn {
-  const config = useRuntimeConfig()
-  const apiKey = options.apiKey || config.public.tiktool?.apiKey || ''
-
   const connected = ref(false)
   const viewers = ref(0)
   const messages = ref<TikTokEvent[]>([])
@@ -91,19 +85,33 @@ export function useTikTokLive(
     }
   }
 
-  function connect() {
-    if (ws) return
-    if (!apiKey) {
-      error.value = 'No API key. Set it in nuxt.config.ts under tiktool.apiKey or via TIKTOOL_API_KEY env var.'
-      console.error('[TikTool]', error.value)
+  let connecting = false
+  // Bumped on disconnect so a token fetch that resolves after unmount does not open a socket.
+  let generation = 0
+
+  async function connect() {
+    if (ws || connecting) return
+    connecting = true
+    const gen = generation
+    // Tokens are scoped to the lowercase handle, so the socket must use the same form.
+    const cleanId = uniqueId.replace(/^@/, '').toLowerCase()
+
+    let token: string
+    try {
+      const res = await $fetch<{ token: string }>('/api/_tiktool/token', { query: { uniqueId: cleanId } })
+      token = res.token
+    } catch (e: any) {
+      if (gen !== generation) return
+      connecting = false
+      error.value = e?.data?.message || 'Could not get a connection token. Set tiktool.apiKey or TIKTOOL_API_KEY on the server.'
+      emitCustom('error', { error: error.value })
       return
     }
-
-    const cleanId = uniqueId.replace(/^@/, '')
-    const url = `wss://api.tik.tools?uniqueId=${cleanId}&apiKey=${apiKey}`
+    if (gen !== generation) return
+    connecting = false
 
     try {
-      ws = new WebSocket(url)
+      ws = new WebSocket(`wss://api.tik.tools?uniqueId=${encodeURIComponent(cleanId)}&jwtKey=${encodeURIComponent(token)}`)
     } catch (e: any) {
       error.value = e.message
       return
@@ -160,6 +168,8 @@ export function useTikTokLive(
   }
 
   function disconnect() {
+    generation++
+    connecting = false
     if (ws) {
       ws.close()
       ws = null
