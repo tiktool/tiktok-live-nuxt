@@ -6,7 +6,6 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/tiktok-live-nuxt"><img src="https://img.shields.io/npm/v/tiktok-live-nuxt?color=%2300dc82&logo=nuxt.js&logoColor=white" alt="npm version"></a>
-  <a href="https://www.npmjs.com/package/tiktok-live-nuxt"><img src="https://img.shields.io/npm/dm/tiktok-live-nuxt?color=%2300dc82" alt="npm downloads"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
 </p>
 
